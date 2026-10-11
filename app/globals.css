@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 40 20% 98%;
+  --foreground: 240 5% 8%;
+  --card: 0 0% 100%;
+  --card-foreground: 240 5% 8%;
+  --muted: 40 12% 94%;
+  --muted-foreground: 240 4% 44%;
+  --border: 40 10% 89%;
+  --primary: 240 6% 10%;
+  --primary-foreground: 0 0% 98%;
+  --accent: 248 100% 68%;
+  --accent-foreground: 0 0% 100%;
+  --radius: 14px;
+}
+
+* { @apply border-border; }
+html { scroll-behavior: smooth; }
+body {
+  @apply bg-background text-foreground antialiased;
+  font-feature-settings: "ss01", "cv11";
+  text-rendering: optimizeLegibility;
+}
+
+::selection { background: #17171a; color: #fafaf8; }
+
+.paper-grid {
+  background-image:
+    linear-gradient(to right, hsl(var(--border) / .55) 1px, transparent 1px),
+    linear-gradient(to bottom, hsl(var(--border) / .55) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.hairline { border: 1px solid hsl(var(--border)); }
+.card-hover { transition: transform .5s cubic-bezier(.22,1,.36,1), box-shadow .5s, border-color .3s; }
+.card-hover:hover { transform: translateY(-3px); box-shadow: 0 12px 40px -12px rgba(16,16,20,.22); }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+
+.focus-ring:focus-visible { outline: 2px solid hsl(var(--foreground)); outline-offset: 3px; }
+
+/* Project PDF export: hide app chrome, paginate only the export layout. */
+@media print {
+  body { background: #fff; }
+  body * { visibility: hidden; }
+  .print-only, .print-only * { visibility: visible; }
+  .print-only { position: absolute; inset: 0; }
+  .print-page {
+    break-after: page;
+    page-break-after: always;
+    border: none !important;
+    margin: 0 !important;
+    width: 100% !important;
+    min-height: auto !important;
+  }
+  .print-page:last-child { break-after: auto; page-break-after: auto; }
+}
