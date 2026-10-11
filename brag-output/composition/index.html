@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Requiem — Brag Composition</title>
+    <script src="assets/vendor/gsap.min.js"></script>
+    <script src="assets/audio-data-30s.js"></script>
+    <style>
+      html, body { margin: 0; padding: 0; background: #000; }
+      body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #0B0B10; color: #FAFAF8; }
+      .clip { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+      .bg-grid {
+        position: absolute; inset: 0;
+        background-image:
+          linear-gradient(to right, rgba(124,108,255,.07) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(124,108,255,.07) 1px, transparent 1px);
+        background-size: 56px 56px;
+      }
+      .bg-vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,.72) 100%); }
+      .scene-inner { width: 1560px; max-width: 1560px; text-align: center; }
+      .kicker {
+        display: inline-block; font-size: 40px; font-weight: 700; letter-spacing: 10px;
+        color: #7C6CFF; margin: 0 0 28px 0;
+      }
+      .hook-line { margin: 0; font-weight: 800; letter-spacing: -2px; line-height: 1.02; font-size: 148px; }
+      .hook-serif { font-family: Georgia, 'Times New Roman', serif; font-style: italic; font-weight: 700; color: #7C6CFF; }
+      .sub { margin: 34px auto 0 auto; font-size: 38px; color: #A7A7B3; max-width: 1200px; }
+      .headline { margin: 0; font-size: 84px; font-weight: 800; letter-spacing: -1px; line-height: 1.08; }
+      .chip {
+        display: inline-flex; align-items: center; gap: 14px;
+        font-size: 34px; font-weight: 600; color: #FAFAF8;
+        background: #17171D; border: 2px solid #2C2C38; border-radius: 999px;
+        padding: 18px 40px;
+      }
+      .chip-dot { width: 18px; height: 18px; border-radius: 999px; background: #7C6CFF; }
+      .row { display: flex; gap: 28px; justify-content: center; margin-top: 44px; }
+      .mod-card {
+        width: 440px; border-radius: 28px; background: #14141B; border: 2px solid #2C2C38;
+        padding: 34px 36px; text-align: left;
+      }
+      .mod-card.lit { border-color: #7C6CFF; }
+      .mod-idx { font-size: 26px; color: #A7A7B3; letter-spacing: 4px; }
+      .mod-title { margin: 10px 0 0 0; font-size: 40px; font-weight: 700; }
+      .stamp {
+        display: inline-block; margin-top: 40px; font-size: 34px; font-weight: 800; letter-spacing: 6px;
+        color: #0B0B10; background: #7C6CFF; border-radius: 16px; padding: 16px 44px;
+      }
+      .quiz-card {
+        width: 1060px; margin: 44px auto 0 auto; border-radius: 28px; background: #14141B;
+        border: 2px solid #2C2C38; padding: 40px 48px; text-align: left;
+      }
+      .quiz-q { margin: 0; font-size: 42px; font-weight: 700; }
+      .opt {
+        margin-top: 18px; border-radius: 18px; border: 2px solid #2C2C38;
+        padding: 20px 28px; font-size: 36px; color: #FAFAF8; background: #0B0B10;
+      }
+      .opt.locked { background: #7C6CFF; border-color: #7C6CFF; color: #0B0B10; font-weight: 800; }
+      .cite {
+        display: inline-block; margin-top: 26px; font-size: 30px; font-weight: 700;
+        color: #7C6CFF; border: 2px solid #7C6CFF; border-radius: 999px; padding: 12px 32px;
+      }
+      .flip-wrap { width: 760px; margin: 36px auto 0 auto; perspective: 1200px; }
+      .flip-inner { position: relative; height: 190px; transform-style: preserve-3d; }
+      .flip-face {
+        position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+        border-radius: 24px; font-size: 44px; font-weight: 800;
+        backface-visibility: hidden; -webkit-backface-visibility: hidden;
+      }
+      .flip-front { background: #14141B; border: 2px solid #2C2C38; color: #FAFAF8; }
+      .flip-back { background: #7C6CFF; color: #0B0B10; transform: rotateY(180deg); }
+      .canvas-panel {
+        position: relative; width: 1240px; height: 560px; margin: 40px auto 0 auto;
+        border-radius: 28px; background: #101016; border: 2px solid #2C2C38; overflow: hidden;
+      }
+      .canvas-grid {
+        position: absolute; inset: 0;
+        background-image:
+          linear-gradient(to right, rgba(250,250,248,.06) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(250,250,248,.06) 1px, transparent 1px);
+        background-size: 40px 40px;
+      }
+      .note-block {
+        position: absolute; left: 120px; top: 330px; width: 640px; text-align: left;
+        background: #FAFAF8; color: #0B0B10; border-radius: 20px; padding: 26px 34px;
+        font-size: 40px; font-weight: 700; border-left: 12px solid #7C6CFF;
+      }
+      .tools { position: absolute; left: 36px; top: 60px; text-align: left; }
+      .tool { font-size: 28px; color: #A7A7B3; letter-spacing: 3px; margin-bottom: 18px; font-weight: 600; }
+      .logo { margin: 0; font-size: 210px; font-weight: 800; letter-spacing: 24px; }
+      .halo {
+        position: absolute; left: 50%; top: 44%; width: 1100px; height: 480px;
+        margin-left: -550px; margin-top: -240px; border-radius: 999px;
+        background: radial-gradient(ellipse at center, rgba(124,108,255,.34) 0%, transparent 70%);
+        opacity: .3;
+      }
+      .tagline { margin: 30px 0 0 0; font-family: Georgia, 'Times New Roman', serif; font-size: 56px; color: #FAFAF8; }
+      .tagline em { font-style: italic; color: #7C6CFF; }
+      .hero-glow {
+        position: absolute; left: 50%; top: 30%; width: 1300px; height: 500px;
+        margin-left: -650px; margin-top: -250px;
+        background: radial-gradient(ellipse at center, rgba(124,108,255,.22) 0%, transparent 70%);
+        opacity: .25;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="requiem-brag"
+      data-start="0"
+      data-width="1920"
+      data-height="1080"
+      data-duration="30"
+    >
+      <div class="bg-grid"></div>
+      <div class="bg-vignette"></div>
+      <!-- SCENE 1: Hook 0-6 -->
+      <section id="rq-s1" class="clip" data-start="0" data-duration="6" data-track-index="1">
+        <div id="rq-s1-inner" class="scene-inner">
+          <div id="rq-s1-glow" class="hero-glow"></div>
+          <div id="rq-s1-chip"><span class="chip"><span class="chip-dot"></span>Lecture-04.pdf</span></div>
+          <h1 id="rq-s1-l1" class="hook-line">STUDY FROM</h1>
+          <h1 id="rq-s1-l2" class="hook-line"><span class="hook-serif">YOUR MATERIAL.</span></h1>
+          <p id="rq-s1-sub" class="sub">Cited explanations, quizzes, and a canvas.</p>
+        </div>
+      </section>
+
+      <!-- SCENE 2: Organize 6-12 -->
+      <section id="rq-s2" class="clip" data-start="6" data-duration="6" data-track-index="2">
+        <div id="rq-s2-inner" class="scene-inner">
+          <p id="rq-s2-kicker" class="kicker">01 · ORGANIZE</p>
+          <h2 id="rq-s2-head" class="headline">Syllabus + PDFs become modules.</h2>
+          <div class="row">
+            <div id="rq-s2-chip1"><span class="chip"><span class="chip-dot"></span>Syllabus.pdf</span></div>
+            <div id="rq-s2-chip2"><span class="chip"><span class="chip-dot"></span>Lecture-04.pdf</span></div>
+            <div id="rq-s2-chip3"><span class="chip"><span class="chip-dot"></span>Slides-07.pdf</span></div>
+          </div>
+          <div class="row">
+            <div id="rq-s2-card1" class="mod-card lit"><p class="mod-idx">01</p><p class="mod-title">Light Reactions</p></div>
+            <div id="rq-s2-card2" class="mod-card lit"><p class="mod-idx">02</p><p class="mod-title">Calvin Cycle</p></div>
+            <div id="rq-s2-card3" class="mod-card lit"><p class="mod-idx">03</p><p class="mod-title">Cell Energy</p></div>
+          </div>
+          <div><span id="rq-s2-stamp" class="stamp">AUTO-CLASSIFIED</span></div>
+        </div>
+      </section>
+
+      <!-- SCENE 3: Learn 12-18.56 -->
+      <section id="rq-s3" class="clip" data-start="12" data-duration="6.56" data-track-index="3">
+        <div id="rq-s3-inner" class="scene-inner">
+          <p id="rq-s3-kicker" class="kicker">02 · LEARN</p>
+          <h2 id="rq-s3-head" class="headline">Grounded AI, cited to your pages.</h2>
+          <div id="rq-s3-quiz" class="quiz-card">
+            <p class="quiz-q">MCQ · What powers the light reactions?</p>
+            <div id="rq-s3-o1" class="opt">Chlorophyll</div>
+            <div id="rq-s3-o2" class="opt">Light energy</div>
+            <div id="rq-s3-o3" class="opt">Glucose</div>
+            <div><span id="rq-s3-badge" class="cite">CITED · Lecture-04.pdf p.3</span></div>
+          </div>
+          <div class="flip-wrap">
+            <div id="rq-s3-flip" class="flip-inner" data-layout-allow-overlap="true">
+              <div class="flip-face flip-front">ATP = ?</div>
+              <div class="flip-face flip-back">cellular energy currency</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCENE 4: Create 18.56-24.56 -->
+      <section id="rq-s4" class="clip" data-start="18.56" data-duration="6" data-track-index="4">
+        <div id="rq-s4-inner" class="scene-inner">
+          <p id="rq-s4-kicker" class="kicker">03 · CREATE</p>
+          <h2 id="rq-s4-head" class="headline">Think on an infinite canvas.</h2>
+          <div class="canvas-panel">
+            <div class="canvas-grid"></div>
+            <svg id="rq-s4-svg" viewBox="0 0 1200 560" style="position:absolute;inset:0;width:100%;height:100%;">
+              <path id="rq-s4-stroke" d="M60,200 C 260,60 420,300 640,170 S 980,240 1140,130"
+                fill="none" stroke="#7C6CFF" stroke-width="16" stroke-linecap="round" pathLength="1"
+                stroke-dasharray="1" stroke-dashoffset="1" />
+            </svg>
+            <div class="tools">
+              <div id="rq-s4-t1" class="tool">pen</div>
+              <div id="rq-s4-t2" class="tool">highlighter</div>
+              <div id="rq-s4-t3" class="tool">eraser</div>
+            </div>
+            <div id="rq-s4-note" class="note-block">Mitochondria = powerhouse.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCENE 5: Outro 24.56-30 -->
+      <section id="rq-s5" class="clip" data-start="24.56" data-duration="5.44" data-track-index="5">
+        <div id="rq-s5-inner" class="scene-inner">
+          <div id="rq-s5-halo" class="halo"></div>
+          <h1 id="rq-s5-logo" class="logo">REQUIEM</h1>
+          <p id="rq-s5-t1" class="tagline">Study <em>Smarter.</em></p>
+          <p id="rq-s5-t2" class="tagline">Create <em>Freely.</em></p>
+          <p id="rq-s5-t3" class="tagline">Master <em>Everything.</em></p>
+        </div>
+      </section>
+
+      <!-- MUSIC -->
+      <audio id="bg-music" data-start="0" data-duration="30" data-track-index="10" data-volume="0.35"
+        data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":1},{"t":27,"v":1},{"t":30,"v":0}]}]}'
+        src="assets/music/happy-beats-business-moves-vol-12-by-ende-dot-app.mp3"></audio>
+      <!-- SFX -->
+      <audio id="sfx-chip" data-start="0.5" data-duration="0.2" data-track-index="11" data-volume="0.8" src="assets/sfx/interface/click_001.ogg"></audio>
+      <audio id="sfx-drop1" data-start="6.56" data-duration="0.2" data-track-index="12" data-volume="0.7" src="assets/sfx/interface/click_001.ogg"></audio>
+      <audio id="sfx-drop2" data-start="7.64" data-duration="0.2" data-track-index="13" data-volume="0.7" src="assets/sfx/interface/click_001.ogg"></audio>
+      <audio id="sfx-drop3" data-start="8.74" data-duration="0.2" data-track-index="14" data-volume="0.7" src="assets/sfx/interface/click_001.ogg"></audio>
+      <audio id="sfx-card1" data-start="9" data-duration="0.6" data-track-index="15" data-volume="0.75" src="assets/sfx/casino/card-place-2.ogg"></audio>
+      <audio id="sfx-card2" data-start="9.45" data-duration="0.6" data-track-index="16" data-volume="0.75" src="assets/sfx/casino/card-place-2.ogg"></audio>
+      <audio id="sfx-card3" data-start="9.9" data-duration="0.6" data-track-index="17" data-volume="0.75" src="assets/sfx/casino/card-place-2.ogg"></audio>
+      <audio id="sfx-stamp" data-start="10.4" data-duration="0.3" data-track-index="18" data-volume="0.8" src="assets/sfx/interface/drop_002.ogg"></audio>
+      <audio id="sfx-lock" data-start="15.2" data-duration="0.2" data-track-index="19" data-volume="0.8" src="assets/sfx/interface/click_001.ogg"></audio>
+      <audio id="sfx-badge" data-start="16" data-duration="0.3" data-track-index="20" data-volume="0.7" src="assets/sfx/impact/impactSoft_medium_001.ogg"></audio>
+      <audio id="sfx-flip" data-start="16.8" data-duration="0.7" data-track-index="21" data-volume="0.7" src="assets/sfx/casino/card-slide-1.ogg"></audio>
+      <audio id="sfx-note" data-start="22" data-duration="0.3" data-track-index="22" data-volume="0.8" src="assets/sfx/interface/drop_002.ogg"></audio>
+      <audio id="sfx-logo" data-start="25.2" data-duration="1.5" data-track-index="23" data-volume="0.85" src="assets/sfx/impact/impactBell_heavy_000.ogg"></audio>
+    </div>
+    <script>
+      var tl = gsap.timeline({ paused: true });
+
+      // SCENE 1 — Hook (0-6)
+      tl.fromTo("#rq-s1-glow", { opacity: 0 }, { opacity: 0.25, duration: 2, ease: "power2.out" }, 0);
+      tl.fromTo("#rq-s1-chip", { y: 60, scale: 0.7, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 0.55, ease: "back.out(1.6)" }, 0.5);
+      tl.fromTo("#rq-s1-l1", { y: 70, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 1.2);
+      tl.fromTo("#rq-s1-l2", { y: 70, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 2.0);
+      tl.fromTo("#rq-s1-sub", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power2.out" }, 3.4);
+      tl.to("#rq-s1-inner", { opacity: 0, duration: 0.6, ease: "power2.in" }, 5.4);
+
+      // SCENE 2 — Organize (6-12)
+      tl.fromTo("#rq-s2-inner", { x: 120, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 6.0);
+      tl.fromTo("#rq-s2-kicker", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power2.out" }, 6.1);
+      tl.fromTo("#rq-s2-head", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, 6.5);
+      // beat-grid arrivals: 6.56 / 7.64 / 8.74
+      tl.fromTo("#rq-s2-chip1", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power2.out" }, 6.56);
+      tl.fromTo("#rq-s2-chip2", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power2.out" }, 7.64);
+      tl.fromTo("#rq-s2-chip3", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power2.out" }, 8.74);
+      tl.fromTo("#rq-s2-card1", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power2.out" }, 9.0);
+      tl.fromTo("#rq-s2-card2", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power2.out" }, 9.45);
+      tl.fromTo("#rq-s2-card3", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power2.out" }, 9.9);
+      tl.fromTo("#rq-s2-stamp", { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.45, ease: "back.out(1.8)" }, 10.4);
+      tl.to("#rq-s2-inner", { opacity: 0, duration: 0.6, ease: "power2.in" }, 11.4);
+
+      // SCENE 3 — Learn (12-18.56)
+      tl.fromTo("#rq-s3-inner", { x: 120, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 12.0);
+      tl.fromTo("#rq-s3-kicker", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power2.out" }, 12.1);
+      tl.fromTo("#rq-s3-head", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, 12.5);
+      tl.fromTo("#rq-s3-quiz", { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, 13.1);
+      tl.fromTo("#rq-s3-o1", { x: -40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.35, ease: "power2.out" }, 13.7);
+      tl.fromTo("#rq-s3-o3", { x: -40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.35, ease: "power2.out" }, 13.95);
+      tl.fromTo("#rq-s3-o2", { x: -40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.35, ease: "power2.out" }, 14.2);
+      tl.to("#rq-s3-o2", { backgroundColor: "#7C6CFF", borderColor: "#7C6CFF", color: "#0B0B10", duration: 0.3, ease: "power2.out" }, 15.2);
+      tl.fromTo("#rq-s3-badge", { scale: 0.7, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.8)" }, 16.0);
+      tl.fromTo("#rq-s3-flip", { rotationY: 0 }, { rotationY: 180, duration: 1.0, ease: "power2.inOut" }, 16.8);
+      tl.to("#rq-s3-inner", { opacity: 0, duration: 0.6, ease: "power2.in" }, 17.96);
+
+      // SCENE 4 — Create (18.56-24.56) — beat-locked entry
+      tl.fromTo("#rq-s4-inner", { x: 120, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 18.56);
+      tl.fromTo("#rq-s4-kicker", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power2.out" }, 18.66);
+      tl.fromTo("#rq-s4-head", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, 19.0);
+      tl.fromTo("#rq-s4-stroke", { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 2.0, ease: "power1.inOut" }, 19.5);
+      tl.fromTo("#rq-s4-note", { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.45, ease: "back.out(1.6)" }, 22.0);
+      tl.fromTo("#rq-s4-t1", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 22.8);
+      tl.fromTo("#rq-s4-t2", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 23.0);
+      tl.fromTo("#rq-s4-t3", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 23.2);
+      tl.to("#rq-s4-inner", { opacity: 0, duration: 0.6, ease: "power2.in" }, 23.96);
+
+      // SCENE 5 — Outro (24.56-30) — beat-locked entry
+      tl.fromTo("#rq-s5-logo", { scale: 1.15, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.6, ease: "power3.out" }, 25.2);
+      tl.fromTo("#rq-s5-halo", { opacity: 0 }, { opacity: 0.3, duration: 0.8, ease: "power2.out" }, 25.2);
+      tl.fromTo("#rq-s5-t1", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power2.out" }, 26.0);
+      tl.fromTo("#rq-s5-t2", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power2.out" }, 26.8);
+      tl.fromTo("#rq-s5-t3", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power2.out" }, 27.6);
+
+      // Audio-reactive: RMS breathes hero glow (0-6s) and logo halo (24.56-30s)
+      var heroGlow = document.getElementById("rq-s1-glow");
+      var halo = document.getElementById("rq-s5-halo");
+      function rqHero(f) { if (heroGlow && f && f.bands) heroGlow.style.opacity = (0.18 + 0.3 * (f.bands[0] || 0)).toFixed(3); }
+      function rqHalo(f) {
+        if (!f || !f.bands) return;
+        var b = f.bands[0] || 0;
+        if (halo) { halo.style.opacity = (0.25 + 0.4 * b).toFixed(3); halo.style.transform = "scale(" + (1 + 0.03 * b).toFixed(4) + ")"; }
+      }
+      if (typeof AUDIO_DATA !== "undefined" && AUDIO_DATA.frames) {
+        var fr = AUDIO_DATA.frames, fps = AUDIO_DATA.fps || 30;
+        for (var f = 0; f < 180; f++) {
+          (function (frame, t) { tl.call(function () { rqHero(frame); }, [], t); })(fr[f], f / fps);
+        }
+        for (var g = 737; g < 900 && g < fr.length; g++) {
+          (function (frame, t) { tl.call(function () { rqHalo(frame); }, [], t); })(fr[g], g / fps);
+        }
+      }
+
+      window.__timelines["requiem-brag"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

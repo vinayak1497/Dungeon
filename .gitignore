@@ -6,6 +6,9 @@ node_modules/
 out/
 next-env.d.ts
 
+# Vercel
+.vercel/
+
 # Secrets - never commit
 .env
 .env.local
@@ -28,3 +31,8 @@ supabase/.temp/
 # OS
 .DS_Store
 Thumbs.db
+.vercel
+.env*
+
+# Archify local cache
+.archify/
