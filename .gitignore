@@ -36,3 +36,11 @@ Thumbs.db
 
 # Archify local cache
 .archify/
+
+# Brag video artifacts (large, local deliverables)
+/brag-output/
+/scratch-probe/
+
+# Build + dev noise
+*.tsbuildinfo
+.dev-*.log

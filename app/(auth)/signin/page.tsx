@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { Chrome, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,13 +10,21 @@ import { Input, Label } from "@/components/ui/input";
 import { Rise, Stagger, Item } from "@/components/motion";
 import { createClient } from "@/utils/supabase/client";
 
+function safeNext(value: string | null): string {
+  if (value && value.startsWith("/") && !value.startsWith("//")) return value;
+  return "/dashboard";
+}
+
 function SigninInner() {
-  const router = useRouter();
   const params = useSearchParams();
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(
+    params.get("error") === "oauth"
+      ? "Google sign-in didn't complete. Please try again."
+      : null
+  );
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -27,8 +35,15 @@ function SigninInner() {
       const supabase = createClient();
       const { error: err } = await supabase.auth.signInWithPassword({ email: email.trim(), password: pw });
       if (err) throw err;
-      const next = params.get("next");
-      router.push(next && next.startsWith("/") ? next : "/dashboard");
+      // Confirm the session actually landed before leaving: a silent push
+      // with no session is exactly the "stuck on sign-in" loop.
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error("Signed in but the session wasn't saved (browser is blocking cookies or storage). Enable cookies and retry.");
+      }
+      // Full navigation so middleware + server components see the fresh
+      // session cookies on first load — client-side push can race them.
+      window.location.assign(safeNext(params.get("next")));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign-in failed.");
     } finally {
@@ -42,7 +57,7 @@ function SigninInner() {
       const supabase = createClient();
       const { error: err } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: `${window.location.origin}/dashboard` }
+        options: { redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(safeNext(params.get("next")))}` }
       });
       if (err) throw err;
     } catch (err) {

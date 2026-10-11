@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Chrome, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,7 +9,6 @@ import { Rise, Stagger, Item } from "@/components/motion";
 import { createClient } from "@/utils/supabase/client";
 
 export default function SignupPage() {
-  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
@@ -42,7 +40,8 @@ export default function SignupPage() {
         setCheckEmail(true);
         return;
       }
-      router.push("/onboarding");
+      // Full navigation so the new session is visible server-side at once.
+      window.location.assign("/onboarding");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign-up failed.");
     } finally {
@@ -56,7 +55,7 @@ export default function SignupPage() {
       const supabase = createClient();
       const { error: err } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: `${window.location.origin}/onboarding` }
+        options: { redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent("/onboarding")}` }
       });
       if (err) throw err;
     } catch (err) {

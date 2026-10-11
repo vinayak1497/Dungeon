@@ -17,8 +17,23 @@ const PROTECTED_PREFIXES = [
 
 const GUEST_ONLY = ["/signin", "/signup"];
 
+function safeNext(value: string | null): string | null {
+  if (value && value.startsWith("/") && !value.startsWith("//")) return value;
+  return null;
+}
+
 export async function middleware(request: NextRequest) {
-  const { response, user } = await updateSession(request);
+  let user = null;
+  let response: NextResponse;
+  try {
+    const result = await updateSession(request);
+    response = result.response;
+    user = result.user;
+  } catch {
+    // Never 500 the whole app on a session-refresh hiccup: treat as
+    // signed-out and let the rules below route accordingly.
+    response = NextResponse.next({ request });
+  }
   const { pathname } = request.nextUrl;
 
   const isProtected = PROTECTED_PREFIXES.some(
@@ -37,8 +52,7 @@ export async function middleware(request: NextRequest) {
 
   if (isGuestOnly && user) {
     const url = request.nextUrl.clone();
-    const next = request.nextUrl.searchParams.get("next");
-    url.pathname = next && next.startsWith("/") ? next : "/dashboard";
+    url.pathname = safeNext(request.nextUrl.searchParams.get("next")) ?? "/dashboard";
     url.search = "";
     return NextResponse.redirect(url);
   }
